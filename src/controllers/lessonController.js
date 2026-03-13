@@ -22,7 +22,7 @@ async function getLessonById(req, res, next) {
 
 async function createLesson(req, res, next) {
   try {
-    const { module_id, title, content, read_time, lesson_order } = req.body;
+    const { module_id, title, description, content, read_time, lesson_order } = req.body;
     const parsedModuleId = Number(module_id);
 
     if (!module_id || !title) {
@@ -42,6 +42,7 @@ async function createLesson(req, res, next) {
     const lesson = await lessonModel.createLesson({
       module_id: parsedModuleId,
       title,
+      description,
       content,
       read_time,
       lesson_order,
@@ -56,7 +57,7 @@ async function createLesson(req, res, next) {
 async function updateLesson(req, res, next) {
   try {
     const lessonId = Number(req.params.id);
-    const { title, content, read_time, lesson_order } = req.body;
+    const { title, description, content, read_time, lesson_order } = req.body;
 
     if (Number.isNaN(lessonId)) {
       return res.status(400).json({ success: false, message: 'Invalid lesson id' });
@@ -68,6 +69,7 @@ async function updateLesson(req, res, next) {
 
     const affectedRows = await lessonModel.updateLesson(lessonId, {
       title,
+      description,
       content,
       read_time,
       lesson_order,

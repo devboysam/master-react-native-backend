@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const moduleRoutes = require('./routes/moduleRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
+const appContentRoutes = require('./routes/appContentRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => {
 
 app.use(moduleRoutes);
 app.use(lessonRoutes);
+app.use(appContentRoutes);
 
 app.use(errorHandler);
 
