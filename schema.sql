@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS modules (
   title VARCHAR(255) NOT NULL,
   description TEXT,
   prerequisites TEXT,
-  icon VARCHAR(100) DEFAULT 'book',
+  icon VARCHAR(2048) DEFAULT 'book',
   order_index INT DEFAULT 0
 );
 

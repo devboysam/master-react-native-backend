@@ -1,0 +1,2 @@
+ALTER TABLE modules
+  MODIFY COLUMN icon VARCHAR(2048) DEFAULT 'book';
