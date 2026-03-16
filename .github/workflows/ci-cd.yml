@@ -1,0 +1,57 @@
+name: Backend API CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: backend-api-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Test And Smoke Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: App smoke check
+        run: node -e "require('./src/app'); console.log('App loaded successfully')"
+
+  deploy:
+    name: Trigger Railway Deploy
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.RAILWAY_DEPLOY_HOOK_URL != ''
+    steps:
+      - name: Trigger deploy hook
+        run: curl -fsSL -X POST "${{ secrets.RAILWAY_DEPLOY_HOOK_URL }}"
+
+  post-deploy-healthcheck:
+    name: Healthcheck
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: needs.deploy.result == 'success' && secrets.BACKEND_HEALTHCHECK_URL != ''
+    steps:
+      - name: Wait for rollout
+        run: sleep 20
+
+      - name: Check health endpoint
+        run: curl -fsSL "${{ secrets.BACKEND_HEALTHCHECK_URL }}"
