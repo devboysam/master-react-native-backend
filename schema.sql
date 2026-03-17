@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS modules (
   description TEXT,
   prerequisites TEXT,
   icon VARCHAR(2048) DEFAULT 'book',
+  background_color CHAR(7) NOT NULL DEFAULT '#EAF2FF',
   order_index INT DEFAULT 0
 );
 

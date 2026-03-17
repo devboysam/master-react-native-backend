@@ -1,6 +1,20 @@
 const moduleModel = require('../models/moduleModel');
 const lessonModel = require('../models/lessonModel');
 
+function normalizeHexColor(value) {
+  const color = String(value || '').trim();
+  if (!color) {
+    return '#EAF2FF';
+  }
+
+  const normalized = color.startsWith('#') ? color : `#${color}`;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(normalized)) {
+    return null;
+  }
+
+  return normalized.toUpperCase();
+}
+
 async function getModules(req, res, next) {
   try {
     const modules = await moduleModel.getAllModules();
@@ -12,7 +26,7 @@ async function getModules(req, res, next) {
 
 async function createModule(req, res, next) {
   try {
-    const { title, description, prerequisites, icon, order_index } = req.body;
+    const { title, description, prerequisites, icon, background_color, order_index } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -21,11 +35,20 @@ async function createModule(req, res, next) {
       });
     }
 
+    const normalizedBgColor = normalizeHexColor(background_color);
+    if (!normalizedBgColor) {
+      return res.status(400).json({
+        success: false,
+        message: 'background_color must be a valid 6-digit hex code (example: #EAF2FF)',
+      });
+    }
+
     const newModule = await moduleModel.createModule({
       title,
       description,
       prerequisites,
       icon,
+      background_color: normalizedBgColor,
       order_index,
     });
 
@@ -58,7 +81,7 @@ async function getModuleById(req, res, next) {
 async function updateModule(req, res, next) {
   try {
     const moduleId = Number(req.params.id);
-    const { title, description, prerequisites, icon, order_index } = req.body;
+    const { title, description, prerequisites, icon, background_color, order_index } = req.body;
 
     if (Number.isNaN(moduleId)) {
       return res.status(400).json({ success: false, message: 'Invalid module id' });
@@ -68,11 +91,20 @@ async function updateModule(req, res, next) {
       return res.status(400).json({ success: false, message: 'title is required' });
     }
 
+    const normalizedBgColor = normalizeHexColor(background_color);
+    if (!normalizedBgColor) {
+      return res.status(400).json({
+        success: false,
+        message: 'background_color must be a valid 6-digit hex code (example: #EAF2FF)',
+      });
+    }
+
     const affectedRows = await moduleModel.updateModule(moduleId, {
       title,
       description,
       prerequisites,
       icon,
+      background_color: normalizedBgColor,
       order_index,
     });
 

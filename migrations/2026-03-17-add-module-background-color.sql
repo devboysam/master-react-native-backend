@@ -1,0 +1,2 @@
+ALTER TABLE modules
+  ADD COLUMN background_color CHAR(7) NOT NULL DEFAULT '#EAF2FF' AFTER icon;
