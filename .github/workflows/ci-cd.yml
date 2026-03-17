@@ -39,19 +39,29 @@ jobs:
     name: Trigger Railway Deploy
     runs-on: ubuntu-latest
     needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.RAILWAY_DEPLOY_HOOK_URL != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Trigger deploy hook
-        run: curl -fsSL -X POST "${{ secrets.RAILWAY_DEPLOY_HOOK_URL }}"
+        run: |
+          if [ -z "${{ secrets.RAILWAY_DEPLOY_HOOK_URL }}" ]; then
+            echo "RAILWAY_DEPLOY_HOOK_URL not set. Skipping deploy trigger."
+            exit 0
+          fi
+          curl -fsSL -X POST "${{ secrets.RAILWAY_DEPLOY_HOOK_URL }}"
 
   post-deploy-healthcheck:
     name: Healthcheck
     runs-on: ubuntu-latest
     needs: deploy
-    if: needs.deploy.result == 'success' && secrets.BACKEND_HEALTHCHECK_URL != ''
+    if: needs.deploy.result == 'success'
     steps:
       - name: Wait for rollout
         run: sleep 20
 
       - name: Check health endpoint
-        run: curl -fsSL "${{ secrets.BACKEND_HEALTHCHECK_URL }}"
+        run: |
+          if [ -z "${{ secrets.BACKEND_HEALTHCHECK_URL }}" ]; then
+            echo "BACKEND_HEALTHCHECK_URL not set. Skipping healthcheck."
+            exit 0
+          fi
+          curl -fsSL "${{ secrets.BACKEND_HEALTHCHECK_URL }}"
