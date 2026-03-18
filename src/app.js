@@ -10,6 +10,8 @@ const app = express();
 const allowedOrigins = [
   'https://coolsam.xyz',
   'https://www.coolsam.xyz',
+  'https://masterreactnative.dev',
+  'https://www.masterreactnative.dev',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:4173',
