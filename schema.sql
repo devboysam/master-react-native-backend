@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS course_learning;
-USE course_learning;
-
 CREATE TABLE IF NOT EXISTS modules (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
