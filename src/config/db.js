@@ -9,6 +9,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'course_learning',
   ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+  connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT || 10000),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

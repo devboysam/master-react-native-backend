@@ -12,6 +12,11 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Failed to initialize database schema', error);
+    if (error && error.code === 'ETIMEDOUT') {
+      console.error(
+        'Database connection timed out. Check DB_HOST/DB_PORT, firewall allowlist, and DB_SSL settings in backend-api/.env.'
+      );
+    }
     process.exit(1);
   }
 }
