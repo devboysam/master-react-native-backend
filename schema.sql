@@ -5,7 +5,10 @@ CREATE TABLE IF NOT EXISTS modules (
   prerequisites TEXT,
   icon VARCHAR(2048) DEFAULT 'book',
   background_color CHAR(7) NOT NULL DEFAULT '#EAF2FF',
-  order_index INT DEFAULT 0
+  image_url VARCHAR(2048) DEFAULT NULL,
+  order_index INT DEFAULT 0,
+  INDEX idx_order_index (order_index),
+  INDEX idx_created_at (id)
 );
 
 CREATE TABLE IF NOT EXISTS lessons (
@@ -19,7 +22,9 @@ CREATE TABLE IF NOT EXISTS lessons (
   CONSTRAINT fk_lessons_module
     FOREIGN KEY (module_id)
     REFERENCES modules(id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  INDEX idx_module_id (module_id),
+  INDEX idx_module_order (module_id, lesson_order)
 );
 
 CREATE TABLE IF NOT EXISTS app_content (
@@ -29,3 +34,8 @@ CREATE TABLE IF NOT EXISTS app_content (
   motivation_text TEXT NOT NULL,
   motivation_quote TEXT NOT NULL
 );
+
+-- Ensure app_content row exists
+INSERT INTO app_content (id, welcome_title, welcome_description, motivation_text, motivation_quote)
+VALUES (1, 'Master React Native', 'A practical React Native course app to help you master app development step by step.', 'Daily Motivation', 'Keep up the great work!')
+ON DUPLICATE KEY UPDATE id = id;

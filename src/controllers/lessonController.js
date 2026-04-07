@@ -57,7 +57,7 @@ async function createLesson(req, res, next) {
 async function updateLesson(req, res, next) {
   try {
     const lessonId = Number(req.params.id);
-    const { title, description, content, read_time, lesson_order } = req.body;
+    const { module_id, title, description, content, read_time, lesson_order } = req.body;
 
     if (Number.isNaN(lessonId)) {
       return res.status(400).json({ success: false, message: 'Invalid lesson id' });
@@ -67,7 +67,12 @@ async function updateLesson(req, res, next) {
       return res.status(400).json({ success: false, message: 'title is required' });
     }
 
+    if (module_id && Number.isNaN(Number(module_id))) {
+      return res.status(400).json({ success: false, message: 'module_id must be a valid number' });
+    }
+
     const affectedRows = await lessonModel.updateLesson(lessonId, {
+      module_id: module_id ? Number(module_id) : undefined,
       title,
       description,
       content,

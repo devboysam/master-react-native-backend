@@ -46,13 +46,48 @@ async function createLesson(lessonData) {
 
 
 async function updateLesson(lessonId, lessonData) {
-  const { title, description, content, read_time, lesson_order } = lessonData;
+  const { module_id, title, description, content, read_time, lesson_order } = lessonData;
+
+  // Build dynamic query based on provided fields
+  const updates = [];
+  const values = [];
+
+  if (title !== undefined) {
+    updates.push('title = ?');
+    values.push(title);
+  }
+  if (description !== undefined) {
+    updates.push('description = ?');
+    values.push(description || '');
+  }
+  if (content !== undefined) {
+    updates.push('content = ?');
+    values.push(content || '');
+  }
+  if (read_time !== undefined) {
+    updates.push('read_time = ?');
+    values.push(read_time || 5);
+  }
+  if (lesson_order !== undefined) {
+    updates.push('lesson_order = ?');
+    values.push(lesson_order || 0);
+  }
+  if (module_id !== undefined) {
+    updates.push('module_id = ?');
+    values.push(module_id);
+  }
+
+  if (!updates.length) {
+    return 0;
+  }
+
+  values.push(lessonId);
 
   const [result] = await pool.query(
     `UPDATE lessons
-     SET title = ?, description = ?, content = ?, read_time = ?, lesson_order = ?
+     SET ${updates.join(', ')}
      WHERE id = ?`,
-    [title, description || '', content || '', read_time || 5, lesson_order || 0, lessonId]
+    values
   );
 
   return result.affectedRows;
