@@ -1,5 +1,14 @@
 const lessonModel = require('../models/lessonModel');
 
+function parseOptionalNumber(value) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
 async function getLessonById(req, res, next) {
   try {
     const lessonId = Number(req.params.id);
@@ -24,8 +33,11 @@ async function createLesson(req, res, next) {
   try {
     const { module_id, title, description, content, read_time, lesson_order } = req.body;
     const parsedModuleId = Number(module_id);
+    const normalizedTitle = String(title || '').trim();
+    const parsedReadTime = parseOptionalNumber(read_time);
+    const parsedLessonOrder = parseOptionalNumber(lesson_order);
 
-    if (!module_id || !title) {
+    if (!module_id || !normalizedTitle) {
       return res.status(400).json({
         success: false,
         message: 'module_id and title are required',
@@ -39,13 +51,27 @@ async function createLesson(req, res, next) {
       });
     }
 
+    if (Number.isNaN(parsedReadTime)) {
+      return res.status(400).json({
+        success: false,
+        message: 'read_time must be a valid number when provided',
+      });
+    }
+
+    if (Number.isNaN(parsedLessonOrder)) {
+      return res.status(400).json({
+        success: false,
+        message: 'lesson_order must be a valid number when provided',
+      });
+    }
+
     const lesson = await lessonModel.createLesson({
       module_id: parsedModuleId,
-      title,
+      title: normalizedTitle,
       description,
       content,
-      read_time,
-      lesson_order,
+      read_time: parsedReadTime,
+      lesson_order: parsedLessonOrder,
     });
 
     return res.status(201).json({ success: true, data: lesson });
@@ -58,26 +84,38 @@ async function updateLesson(req, res, next) {
   try {
     const lessonId = Number(req.params.id);
     const { module_id, title, description, content, read_time, lesson_order } = req.body;
+    const normalizedTitle = String(title || '').trim();
+    const parsedModuleId = parseOptionalNumber(module_id);
+    const parsedReadTime = parseOptionalNumber(read_time);
+    const parsedLessonOrder = parseOptionalNumber(lesson_order);
 
     if (Number.isNaN(lessonId)) {
       return res.status(400).json({ success: false, message: 'Invalid lesson id' });
     }
 
-    if (!title) {
+    if (!normalizedTitle) {
       return res.status(400).json({ success: false, message: 'title is required' });
     }
 
-    if (module_id && Number.isNaN(Number(module_id))) {
-      return res.status(400).json({ success: false, message: 'module_id must be a valid number' });
+    if (module_id !== undefined && Number.isNaN(parsedModuleId)) {
+      return res.status(400).json({ success: false, message: 'module_id must be a valid number when provided' });
+    }
+
+    if (Number.isNaN(parsedReadTime)) {
+      return res.status(400).json({ success: false, message: 'read_time must be a valid number when provided' });
+    }
+
+    if (Number.isNaN(parsedLessonOrder)) {
+      return res.status(400).json({ success: false, message: 'lesson_order must be a valid number when provided' });
     }
 
     const affectedRows = await lessonModel.updateLesson(lessonId, {
-      module_id: module_id ? Number(module_id) : undefined,
-      title,
+      module_id: parsedModuleId,
+      title: normalizedTitle,
       description,
       content,
-      read_time,
-      lesson_order,
+      read_time: parsedReadTime,
+      lesson_order: parsedLessonOrder,
     });
 
     if (!affectedRows) {

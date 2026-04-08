@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS modules (
   description TEXT,
   prerequisites TEXT,
   icon VARCHAR(2048) DEFAULT 'book',
+  image_url VARCHAR(2048) NULL,
   background_color CHAR(7) NOT NULL DEFAULT '#EAF2FF',
-  image_url VARCHAR(2048) DEFAULT NULL,
   order_index INT DEFAULT 0,
   INDEX idx_order_index (order_index),
   INDEX idx_created_at (id)

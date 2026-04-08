@@ -38,7 +38,15 @@ async function createModule(moduleData) {
   const [result] = await pool.query(
     `INSERT INTO modules (title, description, prerequisites, icon, image_url, background_color, order_index)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [title, description || '', prerequisites || '', icon || 'book', image_url || null, background_color || '#EAF2FF', order_index || 0]
+    [
+      title,
+      description || '',
+      prerequisites || '',
+      icon || 'book',
+      image_url || null,
+      background_color || '#EAF2FF',
+      Number(order_index) || 0,
+    ]
   );
 
   return {
@@ -49,7 +57,7 @@ async function createModule(moduleData) {
     icon: icon || 'book',
     image_url: image_url || null,
     background_color: background_color || '#EAF2FF',
-    order_index: order_index || 0,
+    order_index: Number(order_index) || 0,
   };
 }
 
@@ -66,7 +74,7 @@ async function updateModule(moduleId, moduleData) {
       icon || 'book',
       image_url || null,
       background_color || '#EAF2FF',
-      order_index || 0,
+      Number(order_index) || 0,
       moduleId,
     ]
   );

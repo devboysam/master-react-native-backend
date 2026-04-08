@@ -15,21 +15,20 @@ function normalizeHexColor(value) {
   return normalized.toUpperCase();
 }
 
-function validateImageUrl(value) {
-  if (!value || typeof value !== 'string') {
+function normalizeImageUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) {
     return null;
   }
-  
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-  
+
   try {
-    new URL(trimmed);
-    return trimmed;
+    const parsed = new URL(raw);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return undefined;
+    }
+    return parsed.toString();
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -44,9 +43,10 @@ async function getModules(req, res, next) {
 
 async function createModule(req, res, next) {
   try {
-    const { title, description, prerequisites, icon, background_color, image_url, order_index } = req.body;
+    const { title, description, prerequisites, icon, image_url, background_color, order_index } = req.body;
+    const normalizedTitle = String(title || '').trim();
 
-    if (!title) {
+    if (!normalizedTitle) {
       return res.status(400).json({
         success: false,
         message: 'title is required',
@@ -61,14 +61,20 @@ async function createModule(req, res, next) {
       });
     }
 
-    const validatedImageUrl = validateImageUrl(image_url);
+    const normalizedImageUrl = normalizeImageUrl(image_url);
+    if (normalizedImageUrl === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'image_url must be a valid http or https URL',
+      });
+    }
 
     const newModule = await moduleModel.createModule({
-      title,
+      title: normalizedTitle,
       description,
       prerequisites,
       icon,
-      image_url: validatedImageUrl,
+      image_url: normalizedImageUrl,
       background_color: normalizedBgColor,
       order_index,
     });
@@ -102,13 +108,14 @@ async function getModuleById(req, res, next) {
 async function updateModule(req, res, next) {
   try {
     const moduleId = Number(req.params.id);
-    const { title, description, prerequisites, icon, background_color, image_url, order_index } = req.body;
+    const { title, description, prerequisites, icon, image_url, background_color, order_index } = req.body;
+    const normalizedTitle = String(title || '').trim();
 
     if (Number.isNaN(moduleId)) {
       return res.status(400).json({ success: false, message: 'Invalid module id' });
     }
 
-    if (!title) {
+    if (!normalizedTitle) {
       return res.status(400).json({ success: false, message: 'title is required' });
     }
 
@@ -120,14 +127,20 @@ async function updateModule(req, res, next) {
       });
     }
 
-    const validatedImageUrl = validateImageUrl(image_url);
+    const normalizedImageUrl = normalizeImageUrl(image_url);
+    if (normalizedImageUrl === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'image_url must be a valid http or https URL',
+      });
+    }
 
     const affectedRows = await moduleModel.updateModule(moduleId, {
-      title,
+      title: normalizedTitle,
       description,
       prerequisites,
       icon,
-      image_url: validatedImageUrl,
+      image_url: normalizedImageUrl,
       background_color: normalizedBgColor,
       order_index,
     });

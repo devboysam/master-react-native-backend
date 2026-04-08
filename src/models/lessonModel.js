@@ -1,5 +1,14 @@
 const pool = require('../config/db');
 
+function parseOptionalNumber(value) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 async function getLessonsByModuleId(moduleId) {
   const [rows] = await pool.query(
     `SELECT id, module_id, title, description, read_time, lesson_order
@@ -26,11 +35,13 @@ async function getLessonById(lessonId) {
 
 async function createLesson(lessonData) {
   const { module_id, title, description, content, read_time, lesson_order } = lessonData;
+  const normalizedReadTime = parseOptionalNumber(read_time);
+  const normalizedLessonOrder = parseOptionalNumber(lesson_order);
 
   const [result] = await pool.query(
     `INSERT INTO lessons (module_id, title, description, content, read_time, lesson_order)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    [module_id, title, description || '', content || '', read_time || 5, lesson_order || 0]
+    [module_id, title, description || '', content || '', normalizedReadTime, normalizedLessonOrder]
   );
 
   return {
@@ -39,55 +50,32 @@ async function createLesson(lessonData) {
     title,
     description: description || '',
     content: content || '',
-    read_time: read_time || 5,
-    lesson_order: lesson_order || 0,
+    read_time: normalizedReadTime,
+    lesson_order: normalizedLessonOrder,
   };
 }
 
 
 async function updateLesson(lessonId, lessonData) {
   const { module_id, title, description, content, read_time, lesson_order } = lessonData;
-
-  // Build dynamic query based on provided fields
-  const updates = [];
-  const values = [];
-
-  if (title !== undefined) {
-    updates.push('title = ?');
-    values.push(title);
-  }
-  if (description !== undefined) {
-    updates.push('description = ?');
-    values.push(description || '');
-  }
-  if (content !== undefined) {
-    updates.push('content = ?');
-    values.push(content || '');
-  }
-  if (read_time !== undefined) {
-    updates.push('read_time = ?');
-    values.push(read_time || 5);
-  }
-  if (lesson_order !== undefined) {
-    updates.push('lesson_order = ?');
-    values.push(lesson_order || 0);
-  }
-  if (module_id !== undefined) {
-    updates.push('module_id = ?');
-    values.push(module_id);
-  }
-
-  if (!updates.length) {
-    return 0;
-  }
-
-  values.push(lessonId);
+  const shouldUpdateModuleId = module_id !== undefined && module_id !== null && module_id !== '';
+  const normalizedModuleId = shouldUpdateModuleId ? parseOptionalNumber(module_id) : null;
+  const normalizedReadTime = parseOptionalNumber(read_time);
+  const normalizedLessonOrder = parseOptionalNumber(lesson_order);
 
   const [result] = await pool.query(
     `UPDATE lessons
-     SET ${updates.join(', ')}
+     SET module_id = COALESCE(?, module_id), title = ?, description = ?, content = ?, read_time = ?, lesson_order = ?
      WHERE id = ?`,
-    values
+    [
+      shouldUpdateModuleId ? normalizedModuleId : null,
+      title,
+      description || '',
+      content || '',
+      normalizedReadTime,
+      normalizedLessonOrder,
+      lessonId,
+    ]
   );
 
   return result.affectedRows;
